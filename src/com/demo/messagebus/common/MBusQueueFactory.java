@@ -9,9 +9,10 @@ public class MBusQueueFactory {
 	
 	public static Map<String,MBusQueue> queues = new HashMap<String,MBusQueue>();
 	
-	public static void createTopicQueue(String topic){
+	public static MBusQueue createTopicQueue(String topic){
 		if(queues.get(topic) == null)
 			queues.put(topic, new MBusQueue(new LinkedList<Message>()));
+		return queues.get(topic);
 	}
 	
 	public static MBusQueue getQueue(String topic){

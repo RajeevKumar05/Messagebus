@@ -19,7 +19,7 @@ import com.demo.messagebus.common.MessageBusProducer;
 
 public class MBusOfflineClient {
 	private String host = "localhost";
-	private int port = 9673;
+	private int port = 4444;
 	
 	public MBusOfflineClient(){
 		this.createConnectionToMBusClientAndListen();

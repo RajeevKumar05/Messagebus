@@ -1,8 +1,12 @@
 package com.demo.messagebus.server;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONException;
+
 import com.demo.messagebus.common.Client;
+import com.demo.messagebus.common.MBusQueueFactory;
 import com.demo.messagebus.common.Message;
 
 public class MessageHandler {
@@ -10,28 +14,15 @@ public class MessageHandler {
 	Message msg;
 	List<Client> clients;
 	
-	public MessageHandler(Message m, List<Client> clients){this.msg = m; this.clients = clients;}
+	public MessageHandler(Message m, List<Client> clients){this.msg = m; this.clients = clients == null ? new ArrayList<Client>() : clients;}
 	
-	public void sendMessage() {
-		/*for(Client client : clients){
-			try {
-				Thread.sleep(2000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			try {
-				System.out.println("Pushing to Queue : "+client.name()+"\nPayload = "+this.msg.toString()+"\nTopic = "+this.msg.topic());
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-			System.out.println("-------------------------------------------");
-		}*/
+	public void sendMessage() throws JSONException {
 		System.out.println("********************************************");
 		System.out.println("Received Message : "+msg.toString());
 		for(Client client: clients){
 			client.push(msg);
 		}
-		System.out.println("Queue size = "+MessageBusServer.queue.size());
+		System.out.println("Queue size = "+MBusQueueFactory.getQueue(msg.topic()).size());
 		System.out.println("********************************************");
 	}
 

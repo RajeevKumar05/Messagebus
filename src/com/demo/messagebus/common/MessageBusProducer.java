@@ -128,7 +128,7 @@ public class MessageBusProducer {
 		m.put("lastName", "Kumar");
 		m.put(Constants.MESSAGEBUS_TOPIC, System.getProperty(Constants.MESSAGEBUS_TOPIC));
 		Message msg = new Message(m);
-		System.out.println("Pushing : "+m.toString());
+		System.out.println("Producing : "+m.toString());
 		MessageBusProducer.produce("localhost", 4444, msg);
 	}
 }

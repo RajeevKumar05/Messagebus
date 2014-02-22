@@ -9,6 +9,7 @@ import org.json.JSONException;
 
 import com.demo.messagebus.common.Client;
 import com.demo.messagebus.common.Constants;
+import com.demo.messagebus.common.MBusQueueFactory;
 import com.demo.messagebus.common.Message;
 
 public class MessageBus {
@@ -33,8 +34,10 @@ public class MessageBus {
 		if(m.containsKey("isRegistration") && m.get("isRegistration") != null && m.get("isRegistration").equalsIgnoreCase("YES")){
 			addClient(m);
 			return null;
+		}else if(m.containsKey(Constants.MESSAGEBUS_COMMAND) && m.get(Constants.MESSAGEBUS_COMMAND).equalsIgnoreCase(Constants.FETCH_MESSAGE)){
+			return MBusQueueFactory.getQueue(m.topic()).fetch(2);
 		}else{
-			MessageBusServer.queue.offer(m);
+			MBusQueueFactory.createTopicQueue(m.topic()).add(m);
 			MessageHandler mh = new MessageHandler(m,clientStore.get(m.topic()));
 			mh.sendMessage();
 			return null;
