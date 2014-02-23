@@ -16,11 +16,13 @@ import com.demo.messagebus.common.Message;
 import com.demo.messagebus.common.MessageBusProducer;
 import com.demo.messagebus.common.MessageUtil;
 
-public class MessageBusWorker implements Runnable {
+public class MessageBusWorker extends Thread {
 	Socket clientSocket;
 	BufferedReader in;
-	public MessageBusWorker(Socket socket){
+	MessageBusProducer producer;
+	public MessageBusWorker(Socket socket) throws IOException{
 		this.clientSocket = socket;
+		this.producer = new MessageBusProducer(socket);
 	}
 	public void run(){
 		try{
@@ -29,16 +31,20 @@ public class MessageBusWorker implements Runnable {
 							clientSocket.getInputStream()));
 			String inputLine; 
 			StringBuilder input = new StringBuilder();
-
+			Message msg = null;
 			while ((inputLine = in.readLine()) != null) {
-
-				if (inputLine.equalsIgnoreCase("BYE")){
+				if (inputLine.equalsIgnoreCase("EOM")){
+					msg = MessageBus.process(new Message(input.toString()));
+					this.producer.produce(msg, true);
+					input = new StringBuilder();
+				}else if(inputLine.equalsIgnoreCase("BYE")){
+					msg = MessageBus.process(new Message(input.toString()));
+					this.producer.produce(msg, false);
 					break;
-				}
-				input.append(inputLine);   
+				}else{
+					input.append(inputLine);
+				}   
 			}
-			Message msg = MessageBus.process(new Message(input.toString()));
-			MessageBusProducer.sendToSocket(clientSocket, msg);
 		}catch(IOException ioe){
 			ioe.printStackTrace();
 		} catch (JSONException e) {
@@ -47,6 +53,7 @@ public class MessageBusWorker implements Runnable {
 			try{
 				in.close();
 				clientSocket.close();
+				this.producer.close();
 			}catch(Exception e){
 				e.printStackTrace();
 			}

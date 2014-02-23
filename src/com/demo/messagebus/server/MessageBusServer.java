@@ -36,8 +36,8 @@ public class MessageBusServer {
                e.printStackTrace();
            }        
            System.out.println(clientSocket.getInetAddress().toString()+" Connected");           
-           Runnable mt = new MessageBusWorker(clientSocket);
-           mt.run();
+           Thread mt = new MessageBusWorker(clientSocket);
+           mt.start();
        }
     }
 }

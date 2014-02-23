@@ -1,8 +1,11 @@
 package com.demo.messagebus.client;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.HashMap;
@@ -22,17 +25,17 @@ public class MBusOfflineClient {
 	private String host = "localhost";
 	private int port = 4444;
 	
-	public MBusOfflineClient(){
+	public MBusOfflineClient() throws IOException{
 		this.createConnectionAndListen();
 	}
 	
-	public MBusOfflineClient(String host,int port){
+	public MBusOfflineClient(String host,int port) throws IOException{
 		this.host = host;
 		this.port = port;
 		this.createConnectionAndListen();
 	}
 	
-	private void createConnectionAndListen(){
+	private void createConnectionAndListen() throws IOException{
 		Socket pipe = null;
 		BufferedReader in = null;
 		MBusQueueFactory.createTopicQueue(System.getProperty(Constants.MESSAGEBUS_TOPIC));
@@ -46,24 +49,23 @@ public class MBusOfflineClient {
 			System.err.println("Couldn't get I/O for the connection to: "+this.host);
 			System.exit(1);
 		}
-
+		Map<String,Object> m = new HashMap<String,Object>();
+		m.put(Constants.MESSAGEBUS_TOPIC, System.getProperty(Constants.MESSAGEBUS_TOPIC));
+		m.put(Constants.MESSAGEBUS_COMMAND, Constants.FETCH_MESSAGE);
+		Message command = new Message(m);
+		MessageBusProducer producer = new MessageBusProducer(pipe);
 		StringBuilder fromServer = new StringBuilder();
 		String line;
 		try{
-			Map<String,Object> m = new HashMap<String,Object>();
-			m.put(Constants.MESSAGEBUS_TOPIC, System.getProperty(Constants.MESSAGEBUS_TOPIC));
-			m.put(Constants.MESSAGEBUS_COMMAND, Constants.FETCH_MESSAGE);
-			MessageBusProducer.sendToSocket(pipe, new Message(m));
-			System.out.println("Fetching messages.....");
-			System.out.println("************************************");
 			fromServer = new StringBuilder();
+			producer.produce(command, true);
+			System.out.println("************************************");
+			System.out.println("Fetching messages.....");
 			Thread.sleep(2000);
 			while ((line = in.readLine()) != null) {
-				if (!line.equalsIgnoreCase("BYE")){
-					fromServer.append(line);
-				}else{
-					System.out.println("************************************");
+				if (line.equalsIgnoreCase("EOM")){
 					System.out.println("Client received : "+fromServer.toString());
+					System.out.println("************************************");
 					Message msg = new Message(fromServer.toString());
 					MBusQueue queue = MBusQueueFactory.getQueue(System.getProperty(Constants.MESSAGEBUS_TOPIC));
 					Message mm;
@@ -75,31 +77,35 @@ public class MBusOfflineClient {
 							queue.add(mm);
 						}
 					}
+					fromServer = new StringBuilder();
+					producer.produce(command, true);
+					System.out.println("************************************");
+					System.out.println("Fetching messages.....");
+					Thread.sleep(2000);
+				}else{
+					fromServer.append(line);
 				}
 			}
 		}catch (JSONException e){
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (QueueNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}finally{
 			try {
+				producer.close();
 				in.close();
 				pipe.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 	}
 	
-	public static void main(String[] s){
+	public static void main(String[] s) throws IOException{
 		System.setProperty(Constants.MESSAGEBUS_TOPIC, "my.test.topic");
 		new MBusOfflineClient();
 	}

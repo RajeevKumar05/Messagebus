@@ -9,15 +9,61 @@ import com.demo.messagebus.client.MBusConfiguration;
 
 
 public class MessageBusProducer {
+	private Socket pipe = null;
+	private PrintWriter out = null;
+	
+	public MessageBusProducer(Socket pipe) throws IOException{
+		this.pipe = pipe;
+		out = new PrintWriter(pipe.getOutputStream(), true);
+	}
+	
+	public MessageBusProducer(String host,int port) throws IOException{
+		this.pipe = new Socket(host, port);
+		out = new PrintWriter(pipe.getOutputStream(), true);
+	}
+	
+	public void produce(Message message, boolean isMore) throws IOException{
+		InputStream is = null;
+		BufferedReader br = null;
+		try{
+			is = new ByteArrayInputStream(message.toString().getBytes());
+			br = new BufferedReader(new InputStreamReader(is));
+			StringBuilder msg = new StringBuilder();
 
+			String line = br.readLine();
+			while(line != null){
+				msg.append(line);
+				line = br.readLine();
+			}
+			out.println(msg);
+			if(isMore)
+				out.println("EOM");
+			else
+				out.println("BYE");
+		}catch(IOException ioe){
+			throw ioe;
+		}finally{
+			if(br != null)
+				br.close();
+			if(is != null)
+				is.close();
+		}
+	}
+	
+	public void close(){
+		try {
+			this.pipe.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		this.out.close();
+	}
 	public static void produce(String host,int port, Message message) throws IOException{
 		Socket mbusSocket = null;
 		PrintWriter out = null;
-		//BufferedReader in = null;
 		try {
 			mbusSocket = new Socket(host, port);
 			out = new PrintWriter(mbusSocket.getOutputStream(), true);
-			//in = new BufferedReader(new InputStreamReader(kkSocket.getInputStream()));
 		} catch (UnknownHostException e) {
 			System.err.println("Don't know about host: "+host+", port: "+port);
 			System.exit(1);
@@ -38,7 +84,6 @@ public class MessageBusProducer {
 		out.println(msg);
 		out.println("BYE");
 		out.close();
-		//in.close();
 		br.close();
 		mbusSocket.close();
 	}
@@ -123,7 +168,7 @@ public class MessageBusProducer {
 	
 	public static void main(String[] s) throws IOException{
 		MBusConfiguration.initConfig();
-		System.setProperty(Constants.MESSAGEBUS_TOPIC,"my.another.test.topic");
+		//System.setProperty(Constants.MESSAGEBUS_TOPIC,"my.another.test.topic");
 		Map<String,Object> m = new HashMap<String,Object>();
 		Map<String,Object> message = new HashMap<String,Object>();
 		message.put("firstName", "Rajeev");
