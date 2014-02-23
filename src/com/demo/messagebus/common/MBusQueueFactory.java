@@ -9,14 +9,22 @@ public class MBusQueueFactory {
 	
 	public static Map<String,MBusQueue> queues = new HashMap<String,MBusQueue>();
 	
-	public static MBusQueue createTopicQueue(String topic){
+	public static void createTopicQueue(String topic){
 		if(queues.get(topic) == null)
 			queues.put(topic, new MBusQueue(new LinkedList<Message>()));
-		return queues.get(topic);
 	}
 	
-	public static MBusQueue getQueue(String topic){
-		return queues.get(topic);
+	public static void createQueues(){
+		//ArrayList<String> topics = getQueueConfiguration();
+		String topic = "my.test.topic";
+		createTopicQueue(topic);
+	}
+	
+	public static MBusQueue getQueue(String topic) throws QueueNotFoundException{
+		MBusQueue queue = queues.get(topic);
+		if(queue == null)
+			throw new QueueNotFoundException("Queue for topic - "+topic+" is not configured. Contact administrator.");
+		return queue;
 	}
 	
 }

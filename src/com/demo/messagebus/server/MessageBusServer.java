@@ -5,10 +5,12 @@ import java.util.concurrent.SynchronousQueue;
 import java.io.*;
 
 import java.util.LinkedList;
+
+import com.demo.messagebus.common.MBusQueueFactory;
 import com.demo.messagebus.common.Message;
 
 public class MessageBusServer {
-	public static LinkedList<Message> queue = new LinkedList<Message>();
+	//public static LinkedList<Message> queue = new LinkedList<Message>();
     public static void main(String[] args) throws IOException {
     	int port = 4444;
         ServerSocket serverSocket = null;
@@ -17,6 +19,7 @@ public class MessageBusServer {
         	if(_port != null)
         		port = Integer.parseInt(_port);
             serverSocket = new ServerSocket(port);
+            MBusQueueFactory.createQueues();
         } catch (IOException e) {
             System.err.println("Could not listen on port: "+port+".");
             System.exit(1);

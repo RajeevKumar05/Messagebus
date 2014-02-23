@@ -5,10 +5,16 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.json.JSONException;
 
+import com.demo.messagebus.common.Constants;
 import com.demo.messagebus.common.Message;
+import com.demo.messagebus.common.MessageBusProducer;
+import com.demo.messagebus.common.MessageUtil;
 
 public class MessageBusWorker implements Runnable {
 	Socket clientSocket;
@@ -31,7 +37,8 @@ public class MessageBusWorker implements Runnable {
 				}
 				input.append(inputLine);   
 			}
-			MessageBus.process(new Message(input.toString()));
+			Message msg = MessageBus.process(new Message(input.toString()));
+			MessageBusProducer.sendToSocket(clientSocket, msg);
 		}catch(IOException ioe){
 			ioe.printStackTrace();
 		} catch (JSONException e) {

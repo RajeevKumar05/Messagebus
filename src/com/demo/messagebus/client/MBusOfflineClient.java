@@ -16,28 +16,29 @@ import com.demo.messagebus.common.MBusQueue;
 import com.demo.messagebus.common.MBusQueueFactory;
 import com.demo.messagebus.common.Message;
 import com.demo.messagebus.common.MessageBusProducer;
+import com.demo.messagebus.common.QueueNotFoundException;
 
 public class MBusOfflineClient {
 	private String host = "localhost";
 	private int port = 4444;
 	
 	public MBusOfflineClient(){
-		this.createConnectionToMBusClientAndListen();
+		this.createConnectionAndListen();
 	}
 	
 	public MBusOfflineClient(String host,int port){
 		this.host = host;
 		this.port = port;
-		this.createConnectionToMBusClientAndListen();
+		this.createConnectionAndListen();
 	}
 	
-	public void createConnectionToMBusClientAndListen(){
-		Socket pipeToMBuseClient = null;
+	private void createConnectionAndListen(){
+		Socket pipe = null;
 		BufferedReader in = null;
 		MBusQueueFactory.createTopicQueue(System.getProperty(Constants.MESSAGEBUS_TOPIC));
 		try {
-			pipeToMBuseClient = new Socket(this.host, this.port);
-			in = new BufferedReader(new InputStreamReader(pipeToMBuseClient.getInputStream()));
+			pipe = new Socket(this.host, this.port);
+			in = new BufferedReader(new InputStreamReader(pipe.getInputStream()));
 		} catch (UnknownHostException e) {
 			System.err.println("Don't know about host: "+this.host);
 			System.exit(1);
@@ -49,14 +50,13 @@ public class MBusOfflineClient {
 		StringBuilder fromServer = new StringBuilder();
 		String line;
 		try{
-			System.out.println("************************************");
-			fromServer = new StringBuilder();
-			System.out.println("Waiting...");
-			System.out.println("Fetching messages.....");
 			Map<String,Object> m = new HashMap<String,Object>();
 			m.put(Constants.MESSAGEBUS_TOPIC, System.getProperty(Constants.MESSAGEBUS_TOPIC));
 			m.put(Constants.MESSAGEBUS_COMMAND, Constants.FETCH_MESSAGE);
-			MessageBusProducer.sendToSocket(pipeToMBuseClient, new Message(m));
+			MessageBusProducer.sendToSocket(pipe, new Message(m));
+			System.out.println("Fetching messages.....");
+			System.out.println("************************************");
+			fromServer = new StringBuilder();
 			Thread.sleep(2000);
 			while ((line = in.readLine()) != null) {
 				if (!line.equalsIgnoreCase("BYE")){
@@ -65,7 +65,7 @@ public class MBusOfflineClient {
 					System.out.println("************************************");
 					System.out.println("Client received : "+fromServer.toString());
 					Message msg = new Message(fromServer.toString());
-					MBusQueue queue = MBusQueueFactory.getQueue(msg.topic());
+					MBusQueue queue = MBusQueueFactory.getQueue(System.getProperty(Constants.MESSAGEBUS_TOPIC));
 					Message mm;
 					if(queue != null){
 						JSONArray messages = msg.getList(Constants.MESSAGE_LIST);
@@ -85,10 +85,13 @@ public class MBusOfflineClient {
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (QueueNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}finally{
 			try {
 				in.close();
-				pipeToMBuseClient.close();
+				pipe.close();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

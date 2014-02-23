@@ -21,6 +21,7 @@ import com.demo.messagebus.common.MBusQueue;
 import com.demo.messagebus.common.MBusQueueFactory;
 import com.demo.messagebus.common.Message;
 import com.demo.messagebus.common.MessageBusProducer;
+import com.demo.messagebus.common.QueueNotFoundException;
 
 public class MBusOnlineClient {
 	
@@ -82,6 +83,9 @@ public class MBusOnlineClient {
 					MessageBusProducer.writeToSocket(serverSocket, new Message(hm));
 				}
 			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (QueueNotFoundException e) {
+				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -146,7 +150,7 @@ public class MBusOnlineClient {
 		System.out.println("Local client registered in online mode !!");
 	}
 	
-	public List<Message> readAndProcess(Socket skt) throws IOException{
+	public List<Message> readAndProcess(Socket skt) throws IOException, QueueNotFoundException{
 		BufferedReader in = new BufferedReader(
 				new InputStreamReader(
 						skt.getInputStream()));
@@ -164,7 +168,7 @@ public class MBusOnlineClient {
 		return null;
 	}
 	
-	public static List<Message> processMessage(String input){
+	public static List<Message> processMessage(String input) throws QueueNotFoundException{
 		System.out.println("************************************");
 		System.out.println("Client received : "+input);
 		Message msg = null;

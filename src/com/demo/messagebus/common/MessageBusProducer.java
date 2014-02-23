@@ -123,9 +123,12 @@ public class MessageBusProducer {
 	
 	public static void main(String[] s) throws IOException{
 		MBusConfiguration.initConfig();
+		System.setProperty(Constants.MESSAGEBUS_TOPIC,"my.another.test.topic");
 		Map<String,Object> m = new HashMap<String,Object>();
-		m.put("firstName", "Rajeev");
-		m.put("lastName", "Kumar");
+		Map<String,Object> message = new HashMap<String,Object>();
+		message.put("firstName", "Rajeev");
+		message.put("lastName", "Kumar");
+		m.put(Constants.MESSAGE, message.toString());
 		m.put(Constants.MESSAGEBUS_TOPIC, System.getProperty(Constants.MESSAGEBUS_TOPIC));
 		Message msg = new Message(m);
 		System.out.println("Producing : "+m.toString());

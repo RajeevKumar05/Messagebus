@@ -12,4 +12,7 @@ public class Constants {
 	public static String MESSAGEBUS_COMMAND = "command";
 	public static String MESSAGEBUS_CLIENT_WORKER = "messagebus.client.worker";
 	public static String MESSAGE_LIST = "message_list";
+	public static String ERROR = "ERROR";
+	public static String SUCCESS = "SUCCESS";
+	public static String MESSAGE = "message";
 }

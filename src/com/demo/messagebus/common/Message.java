@@ -50,8 +50,12 @@ public class Message {
 		return msg.toString();
 	}
 	
-	public String topic() throws JSONException{
-		return msg.getString(Constants.MESSAGEBUS_TOPIC);
+	public String topic(){
+		try {
+			return msg.getString(Constants.MESSAGEBUS_TOPIC);
+		} catch (JSONException e) {
+			return null;
+		}
 	}
 	
 	public JSONObject payload() throws JSONException{

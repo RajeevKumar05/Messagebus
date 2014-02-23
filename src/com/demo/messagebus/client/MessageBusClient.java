@@ -5,6 +5,7 @@ import com.demo.messagebus.common.IMBusWorker;
 import com.demo.messagebus.common.MBusQueue;
 import com.demo.messagebus.common.MBusQueueFactory;
 import com.demo.messagebus.common.MBusWorkerFactory;
+import com.demo.messagebus.common.QueueNotFoundException;
 
 public class MessageBusClient extends Thread{
 	@Override
@@ -24,7 +25,7 @@ public class MessageBusClient extends Thread{
 		System.out.println(Constants.MESSAGEBUS_TOPIC+" = "+System.getProperty(Constants.MESSAGEBUS_TOPIC));
 	}
 
-	public static void main(String[] s) throws InterruptedException, ClassNotFoundException, InstantiationException, IllegalAccessException{
+	public static void main(String[] s) throws InterruptedException, ClassNotFoundException, InstantiationException, IllegalAccessException, QueueNotFoundException{
 		MBusConfiguration.initConfig();
 		MBusConfiguration.initializeClientWorker();
 
